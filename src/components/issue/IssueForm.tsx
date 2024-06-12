@@ -1,12 +1,18 @@
-'use client'
+import { PrismaClient } from "@prisma/client"
+import { revalidatePath } from "next/cache";
+import { SubmitButton } from "./submitButton";
 
-import { Issue } from "@prisma/client"
+export function IssueForm() {
 
-export function IssueForm(props: { createIssue: (formData: Issue) => void }) {
 
-  const onsubmit = (form: FormData) => {
+
+  async function onsubmit(form: FormData) {
+    'use server'
+    await new Promise(resolve => setTimeout(resolve, 3000))
+    const prisma = new PrismaClient();
     const issue = { title: form.get('title')!.toString(), summary: form.get('summary')!.toString(), description: form.get('description')!.toString()};
-    props.createIssue(issue as Issue);
+    await prisma.issue.create({data: issue})
+    revalidatePath('/issues')
   }
 
   return (
@@ -15,7 +21,7 @@ export function IssueForm(props: { createIssue: (formData: Issue) => void }) {
       <input name='title' placeholder='title'/>
       <input name='summary' placeholder='summary'/>
       <input name='description' placeholder='description'/>
-      <button type="submit">save</button>
+      <SubmitButton />
     </form>
     </div>
   );
